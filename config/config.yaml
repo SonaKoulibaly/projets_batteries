@@ -1,0 +1,87 @@
+# Configuration du projet - Prédiction SoH Batteries
+
+# Chemins
+paths:
+  data:
+    raw: "./data/raw"
+    processed: "./data/processed"
+  models: "./models"
+  results:
+    metrics: "./results/metrics"
+    figures: "./results/figures"
+  notebooks: "./notebooks"
+
+# Preprocessing
+preprocessing:
+  window_size: 20
+  test_size: 0.15
+  val_size: 0.15
+  random_state: 42
+  split_method: "temporal"
+  
+  feature_columns:
+    - Voltage_measured
+    - Current_measured
+    - Temperature_measured
+    - SoC
+    - cycle_number
+    - Voltage_diff
+    - SoC_diff
+    - Temp_diff
+    - Voltage_ma3
+    - SoC_ma3
+    - Temp_ma3
+    - Voltage_x_SoC
+    - Current_x_Temp
+    - Voltage_per_SoC
+    - cycle_normalized
+  
+  target_column: SoH
+  id_column: battery_id
+
+# Modèle LSTM
+model:
+  architecture:
+    lstm_units_1: 256
+    lstm_units_2: 128
+    dense_units: 32
+    dropout_rate: 0.3
+  
+  training:
+    learning_rate: 0.001
+    batch_size: 64
+    epochs: 200
+    patience: 20
+    
+  callbacks:
+    early_stopping:
+      monitor: val_loss
+      patience: 20
+      restore_best_weights: true
+    
+    reduce_lr:
+      monitor: val_loss
+      factor: 0.5
+      patience: 10
+      min_lr: 1.0e-6
+
+# Évaluation
+evaluation:
+  metrics:
+    - mae
+    - rmse
+    - r2
+    - mape
+  
+  thresholds:
+    mae_target: 2.0
+    r2_target: 0.90
+  
+  visualization:
+    figure_dpi: 300
+    figure_format: png
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

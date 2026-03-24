@@ -1,5 +1,5 @@
 // Configuration
-const API_URL = 'https://ona6-battery-soh-api.hf.space';    
+const API_URL = 'https://ona6-battery-soh-api.hf.space';  
 
 // Variables globales
 let uploadedData = null;

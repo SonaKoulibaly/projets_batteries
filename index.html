@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoH Predictor - AI Battery Health Prediction System</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --electric-green: #00ff41;
+            --neon-blue: #00d4ff;
+            --energy-yellow: #ffed4e;
+            --dark-bg: #0a0e27;
+            --card-bg: #0f1629;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .orbitron {
+            font-family: 'Orbitron', monospace;
+        }
+        
+        /* Circuit Board Background */
+        .circuit-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Electric Glow Text */
+        .electric-glow {
+            text-shadow: 
+                0 0 10px var(--electric-green),
+                0 0 20px var(--electric-green),
+                0 0 30px var(--electric-green),
+                0 0 40px var(--electric-green);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* Battery Charge Animation */
+        .battery-icon {
+            position: relative;
+            width: 100px;
+            height: 50px;
+            border: 3px solid var(--electric-green);
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .battery-icon::before {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 15px;
+            width: 8px;
+            height: 20px;
+            background: var(--electric-green);
+            border-radius: 0 3px 3px 0;
+        }
+        
+        .battery-level {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--electric-green), var(--neon-blue));
+            animation: charge 3s ease-in-out infinite;
+        }
+        
+        @keyframes charge {
+            0% { width: 20%; }
+            50% { width: 100%; }
+            100% { width: 20%; }
+        }
+        
+        /* Energy Particles */
+        .energy-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--electric-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--electric-green);
+            animation: float-particle 5s infinite;
+        }
+        
+        @keyframes float-particle {
+            0%, 100% {
+                transform: translate(0, 0);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translate(100px, -100px);
+                opacity: 0;
+            }
+        }
+        
+        /* Glass Morphism - Energy Style */
+        .glass-energy {
+            background: rgba(15, 22, 41, 0.7);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 255, 65, 0.2);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.37),
+                inset 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+        
+        .glass-energy:hover {
+            border-color: rgba(0, 255, 65, 0.5);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 255, 65, 0.3),
+                inset 0 0 30px rgba(0, 255, 65, 0.2);
+        }
+        
+        /* Lightning Effect */
+        .lightning {
+            position: relative;
+        }
+        
+        .lightning::before {
+            content: '⚡';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            font-size: 2rem;
+            animation: lightning-flash 3s infinite;
+        }
+        
+        @keyframes lightning-flash {
+            0%, 90%, 100% { opacity: 0; }
+            92%, 98% { opacity: 1; }
+        }
+        
+        /* Energy Button */
+        .btn-energy {
+            position: relative;
+            background: linear-gradient(135deg, #00ff41, #00d4ff);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 65, 0.5),
+                0 0 40px rgba(0, 212, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-energy:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 65, 0.8),
+                0 0 60px rgba(0, 212, 255, 0.5);
+        }
+        
+        .btn-energy::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff41, #00d4ff, #ffed4e);
+            border-radius: inherit;
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .btn-energy:hover::after {
+            opacity: 1;
+        }
+        
+        /* Circuit Lines */
+        .circuit-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--electric-green), transparent);
+            animation: circuit-flow 3s linear infinite;
+        }
+        
+        @keyframes circuit-flow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Charging Status */
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--electric-green);
+            box-shadow: 0 0 15px var(--electric-green);
+            animation: pulse-status 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-status {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+        
+        /* Metric Cards - Energy Theme */
+        .metric-energy {
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.05), rgba(0, 212, 255, 0.05));
+            border: 2px solid rgba(0, 255, 65, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-energy::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.2), transparent);
+            animation: scan 3s infinite;
+        }
+        
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .metric-energy:hover {
+            transform: translateY(-10px);
+            border-color: var(--electric-green);
+            box-shadow: 0 20px 40px rgba(0, 255, 65, 0.3);
+        }
+        
+        /* Hex Grid Background */
+        .hex-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0L100 25L100 75L50 100L0 75L0 25Z' fill='none' stroke='%2300ff41' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 100px 100px;
+        }
+        
+        /* Loading Spinner - Battery Theme */
+        .spinner-battery {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(0, 255, 65, 0.2);
+            border-top-color: var(--electric-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Scroll Progress - Energy Bar */
+        .scroll-energy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--electric-green), var(--neon-blue), var(--energy-yellow));
+            z-index: 9999;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+        }
+        
+        /* Model Status Panel */
+        .model-status {
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 212, 255, 0.1));
+            border: 2px solid var(--electric-green);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+        
+        .model-status.loading .status-indicator {
+            background: var(--energy-yellow);
+            box-shadow: 0 0 15px var(--energy-yellow);
+        }
+        
+        .model-status.ready .status-indicator {
+            background: var(--electric-green);
+        }
+        
+        .model-status.error .status-indicator {
+            background: #ff4136;
+            box-shadow: 0 0 15px #ff4136;
+        }
+        
+        /* Energy Flow Lines */
+        .energy-flow {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(180deg, transparent, var(--electric-green), transparent);
+            animation: flow-down 2s linear infinite;
+        }
+        
+        @keyframes flow-down {
+            0% { top: -100px; opacity: 0; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Custom Scrollbar - Energy Theme */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+            border-left: 1px solid rgba(0, 255, 65, 0.2);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--electric-green), var(--neon-blue));
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--electric-green);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            box-shadow: 0 0 20px var(--electric-green);
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Scroll Progress Energy Bar -->
+    <div class="scroll-energy" id="scrollEnergy"></div>
+    
+    <!-- Circuit Background -->
+    <div class="circuit-bg"></div>
+    <div class="hex-grid"></div>
+    
+    <!-- Energy Particles -->
+    <div class="energy-particle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+    <div class="energy-particle" style="top: 30%; left: 60%; animation-delay: 1s;"></div>
+    <div class="energy-particle" style="top: 60%; left: 80%; animation-delay: 2s;"></div>
+    <div class="energy-particle" style="top: 80%; left: 30%; animation-delay: 3s;"></div>
+    
+    <div class="content">
+        
+        <!-- Header -->
+        <header class="glass-energy sticky top-0 z-50 border-b-2 border-green-500/30">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4" data-aos="fade-right">
+                        <img src="logo.png" alt="SoH Predictor" class="h-16 w-auto drop-shadow-[0_0_15px_rgba(0,255,65,0.6)]">
+                        <div>
+                            <h1 class="orbitron text-2xl font-bold electric-glow">SoH PREDICTOR</h1>
+                            <p class="text-xs text-green-400/80 uppercase tracking-widest">Battery Health Analytics</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Model Status Indicator -->
+                    <div class="model-status ready hidden md:flex" id="modelStatusHeader">
+                        <div class="status-indicator"></div>
+                        <div>
+                            <div class="text-xs text-gray-400 uppercase">Modèle LSTM</div>
+                            <div class="text-sm font-bold text-green-400" id="modelStatusText">Prêt</div>
+                        </div>
+                    </div>
+                    
+                    <nav class="hidden lg:flex space-x-8" data-aos="fade-left">
+                        <a href="#home" class="text-gray-300 hover:text-green-400 transition-all hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]">Accueil</a>
+                        <a href="#predict" class="text-gray-300 hover:text-green-400 transition-all hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]">Analyse</a>
+                        <a href="#about" class="text-gray-300 hover:text-green-400 transition-all hover:drop-shadow-[0_0_8px_rgba(0,255,65,0.8)]">Technologie</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen flex items-center justify-center py-20 relative">
+            
+            <!-- Energy Flow Lines -->
+            <div class="energy-flow" style="left: 10%; animation-delay: 0s;"></div>
+            <div class="energy-flow" style="left: 30%; animation-delay: 0.5s;"></div>
+            <div class="energy-flow" style="left: 50%; animation-delay: 1s;"></div>
+            <div class="energy-flow" style="left: 70%; animation-delay: 1.5s;"></div>
+            <div class="energy-flow" style="left: 90%; animation-delay: 2s;"></div>
+            
+            <div class="container mx-auto px-6">
+                <div class="text-center max-w-5xl mx-auto">
+                    
+                    <!-- Battery Animation -->
+                    <div class="flex justify-center mb-8" data-aos="zoom-in">
+                        <div class="battery-icon">
+                            <div class="battery-level"></div>
+                        </div>
+                    </div>
+                    
+                    <div data-aos="fade-up">
+                        <h2 class="orbitron text-6xl md:text-8xl font-bold mb-6 leading-tight electric-glow">
+                            BATTERY HEALTH<br>
+                            <span class="text-green-400">PREDICTION SYSTEM</span>
+                        </h2>
+                    </div>
+                    
+                    <p class="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                        Technologie <span class="text-green-400 font-bold orbitron">LSTM</span> de pointe pour l'analyse prédictive de l'état de santé des batteries lithium-ion
+                    </p>
+                    
+                    <!-- Stats Grid - Energy Theme -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                        <div class="metric-energy rounded-2xl p-8 lightning" data-aos="flip-up" data-aos-delay="300">
+                            <div class="text-6xl font-bold text-green-400 orbitron mb-2">84.5%</div>
+                            <div class="text-sm text-gray-400 uppercase tracking-widest">R² Score</div>
+                            <div class="mt-4 h-1 w-24 mx-auto bg-gradient-to-r from-green-400 to-cyan-400 rounded-full"></div>
+                        </div>
+                        
+                        <div class="metric-energy rounded-2xl p-8 lightning" data-aos="flip-up" data-aos-delay="400">
+                            <div class="text-6xl font-bold text-cyan-400 orbitron mb-2">2.15%</div>
+                            <div class="text-sm text-gray-400 uppercase tracking-widest">MAE</div>
+                            <div class="mt-4 h-1 w-24 mx-auto bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full"></div>
+                        </div>
+                        
+                        <div class="metric-energy rounded-2xl p-8 lightning" data-aos="flip-up" data-aos-delay="500">
+                            <div class="text-6xl font-bold text-yellow-400 orbitron mb-2">96.7%</div>
+                            <div class="text-sm text-gray-400 uppercase tracking-widest">Précision ±5%</div>
+                            <div class="mt-4 h-1 w-24 mx-auto bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-16" data-aos="fade-up" data-aos-delay="600">
+                        <a href="#predict" class="btn-energy inline-block px-12 py-5 rounded-full font-bold text-lg text-black orbitron">
+                            ⚡ LANCER L'ANALYSE
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction Section -->
+        <section id="predict" class="py-32 relative">
+            <div class="container mx-auto px-6">
+                <div class="max-w-5xl mx-auto">
+                    
+                    <div class="text-center mb-16" data-aos="fade-up">
+                        <h2 class="orbitron text-5xl md:text-7xl font-bold mb-6 electric-glow">
+                            ANALYSE PRÉDICTIVE
+                        </h2>
+                        <p class="text-xl text-gray-400">Système d'analyse intelligent basé sur l'IA</p>
+                    </div>
+                    
+                    <!-- Model Loading Status (visible avant prédiction) -->
+                    <div class="model-status ready mb-10" id="modelStatusPanel" data-aos="zoom-in">
+                        <div class="status-indicator"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-400 uppercase tracking-wider">Statut du Modèle LSTM</div>
+                                    <div class="text-lg font-bold text-green-400 orbitron" id="modelStatusMain">
+                                        ✅ Modèle chargé et prêt • 889K paramètres actifs
+                                    </div>
+                                </div>
+                                <div class="battery-icon" style="width: 60px; height: 30px;">
+                                    <div class="battery-level" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-energy rounded-3xl p-10 md:p-14" data-aos="zoom-in">
+                        
+                        <!-- Upload Area -->
+                        <div class="mb-10">
+                            <label class="block text-xl font-semibold mb-6 text-green-400 orbitron">
+                                📊 FICHIER DE DONNÉES CSV
+                            </label>
+                            <div class="relative">
+                                <input type="file" id="csvFile" accept=".csv" 
+                                       class="w-full px-6 py-5 bg-slate-900/50 border-2 border-green-500/30 rounded-2xl text-white
+                                              file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0
+                                              file:text-sm file:font-semibold file:bg-gradient-to-r file:from-green-500 file:to-cyan-500 file:text-black
+                                              hover:file:from-green-600 hover:file:to-cyan-600 cursor-pointer transition-all
+                                              focus:outline-none focus:border-green-400 hover:border-green-400/50">
+                                <p class="text-sm text-gray-500 mt-4 flex items-center gap-2">
+                                    <span class="text-yellow-400">⚠️</span>
+                                    Minimum <strong class="text-green-400">20 mesures</strong> • Format: Voltage, Current, Temperature, SoC, cycle_number
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview -->
+                        <div id="dataPreview" class="hidden mb-10">
+                            <h3 class="text-xl font-semibold mb-6 text-green-400 orbitron">⚡ APERÇU DES DONNÉES</h3>
+                            <div class="glass-energy rounded-2xl p-6 overflow-x-auto">
+                                <div id="previewTable" class="text-sm"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Predict Button -->
+                        <button id="predictBtn" 
+                                class="w-full btn-energy text-black font-bold py-6 px-10 rounded-2xl
+                                       disabled:opacity-30 disabled:cursor-not-allowed orbitron text-xl
+                                       shadow-2xl"
+                                disabled>
+                            ⚡ ANALYSER ET PRÉDIRE LE SoH
+                        </button>
+                        
+                        <!-- Loading -->
+                        <div id="loading" class="hidden flex flex-col justify-center items-center mt-12">
+                            <div class="spinner-battery mb-6"></div>
+                            <span class="text-green-400 text-lg orbitron">Analyse en cours...</span>
+                            <span class="text-gray-400 text-sm mt-2">Le modèle LSTM traite vos données</span>
+                        </div>
+                        
+                        <!-- Results -->
+                        <div id="results" class="hidden mt-12">
+                            <h3 class="text-4xl font-bold mb-10 text-center electric-glow orbitron">
+                                ✅ RÉSULTATS DE L'ANALYSE
+                            </h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                                <div class="glass-energy rounded-2xl p-6 border-2 border-green-500/50">
+                                    <div class="text-sm text-gray-400 mb-2 uppercase tracking-wider">SoH Moyen</div>
+                                    <div id="meanSoH" class="text-5xl font-bold text-green-400 orbitron">--</div>
+                                </div>
+                                <div class="glass-energy rounded-2xl p-6 border-2 border-cyan-500/50">
+                                    <div class="text-sm text-gray-400 mb-2 uppercase tracking-wider">SoH Minimum</div>
+                                    <div id="minSoH" class="text-5xl font-bold text-cyan-400 orbitron">--</div>
+                                </div>
+                                <div class="glass-energy rounded-2xl p-6 border-2 border-yellow-500/50">
+                                    <div class="text-sm text-gray-400 mb-2 uppercase tracking-wider">SoH Maximum</div>
+                                    <div id="maxSoH" class="text-5xl font-bold text-yellow-400 orbitron">--</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chart -->
+                            <div class="glass-energy rounded-2xl p-8 mb-8">
+                                <canvas id="predictionChart"></canvas>
+                            </div>
+                            
+                            <!-- Download -->
+                            <button id="downloadBtn" 
+                                    class="w-full glass-energy hover:border-green-400 text-white font-semibold py-5 px-6 rounded-2xl transition-all orbitron border-2 border-green-500/30">
+                                💾 TÉLÉCHARGER LES RÉSULTATS
+                            </button>
+                        </div>
+                        
+                        <!-- Error -->
+                        <div id="error" class="hidden mt-8 bg-red-900/30 border-2 border-red-500 rounded-2xl p-5 text-red-200"></div>
+                        
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-32">
+            <div class="container mx-auto px-6">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <div class="text-center mb-16" data-aos="fade-up">
+                        <h2 class="orbitron text-5xl md:text-7xl font-bold mb-6 electric-glow">TECHNOLOGIE</h2>
+                        <p class="text-xl text-gray-400">Architecture LSTM de nouvelle génération</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        
+                        <div class="glass-energy rounded-3xl p-10" data-aos="fade-right">
+                            <h3 class="text-2xl font-bold mb-6 text-green-400 orbitron flex items-center gap-3">
+                                <span>🧠</span> ARCHITECTURE LSTM
+                            </h3>
+                            <ul class="space-y-4 text-gray-300">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">256 neurones</strong> LSTM + Dropout 30%</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">128 neurones</strong> LSTM + Dropout 30%</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">32 neurones</strong> Dense + Dropout 30%</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">1 neurone</strong> sortie → SoH</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-400 text-xl">⚡</span>
+                                    <span><strong class="text-white orbitron">889,409 paramètres</strong> entraînables</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="glass-energy rounded-3xl p-10" data-aos="fade-left">
+                            <h3 class="text-2xl font-bold mb-6 text-cyan-400 orbitron flex items-center gap-3">
+                                <span>📊</span> DATASET & TRAINING
+                            </h3>
+                            <ul class="space-y-4 text-gray-300">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-cyan-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">24 batteries</strong> réelles analysées</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-cyan-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">~29,000 mesures</strong> de cycles</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-cyan-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">15 features</strong> (5 brutes + 10 engineerées)</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-cyan-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">Window: 20 timesteps</strong></span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-cyan-400 text-xl">⚡</span>
+                                    <span><strong class="text-white">Split temporel</strong> 80/10/10</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Tech Stack -->
+                    <div class="mt-16 glass-energy rounded-3xl p-10 text-center" data-aos="zoom-in">
+                        <h3 class="text-2xl font-bold mb-8 text-green-400 orbitron">⚙️ STACK TECHNOLOGIQUE</h3>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <span class="px-6 py-3 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-orange-500/50">TensorFlow 2.15</span>
+                            <span class="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-blue-500/50">Python 3.10</span>
+                            <span class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-green-500/50">NumPy</span>
+                            <span class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-purple-500/50">Pandas</span>
+                            <span class="px-6 py-3 bg-gradient-to-r from-red-500 to-orange-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-red-500/50">Scikit-learn</span>
+                            <span class="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full font-bold text-sm text-black orbitron shadow-lg shadow-indigo-500/50">Flask API</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="glass-energy border-t-2 border-green-500/30 py-12">
+            <div class="container mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <img src="logo.png" alt="SoH Predictor" class="h-12 w-auto drop-shadow-[0_0_15px_rgba(0,255,65,0.6)]">
+                            <span class="orbitron text-xl font-bold electric-glow">SoH PREDICTOR</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">
+                            Système d'analyse prédictive de l'état de santé des batteries utilisant l'intelligence artificielle et les réseaux LSTM.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-4 text-green-400 orbitron">TECHNOLOGIES</h4>
+                        <ul class="space-y-2 text-sm text-gray-400">
+                            <li class="flex items-center gap-2"><span class="text-green-400">⚡</span> TensorFlow & Keras</li>
+                            <li class="flex items-center gap-2"><span class="text-green-400">⚡</span> LSTM Deep Learning</li>
+                            <li class="flex items-center gap-2"><span class="text-green-400">⚡</span> Flask REST API</li>
+                            <li class="flex items-center gap-2"><span class="text-green-400">⚡</span> React Dashboard</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-4 text-cyan-400 orbitron">PERFORMANCE</h4>
+                        <ul class="space-y-2 text-sm text-gray-400">
+                            <li class="flex justify-between"><span>R² Score</span> <strong class="text-green-400 orbitron">84.5%</strong></li>
+                            <li class="flex justify-between"><span>MAE</span> <strong class="text-cyan-400 orbitron">2.15%</strong></li>
+                            <li class="flex justify-between"><span>RMSE</span> <strong class="text-blue-400 orbitron">2.66%</strong></li>
+                            <li class="flex justify-between"><span>Précision ±5%</span> <strong class="text-yellow-400 orbitron">96.7%</strong></li>
+                        </ul>
+                    </div>
+                    
+                </div>
+                
+                <div class="border-t border-green-500/30 pt-8 text-center text-sm text-gray-400">
+                    <p class="mb-2 orbitron">
+                        <strong class="text-green-400 text-lg">Créé par Sona KOULIBALY</strong>
+                    </p>
+                    <p>
+                        Mastère 2 Big Data • <span class="text-green-400">Deep Learning</span> • Mars 2026
+                    </p>
+                    <p class="mt-4 text-xs flex items-center justify-center gap-2">
+                        <span class="status-indicator" style="width: 8px; height: 8px;"></span>
+                        © 2026 SoH Predictor. Tous droits réservés.
+                    </p>
+                </div>
+            </div>
+        </footer>
+        
+    </div>
+
+    <script src="app.js"></script>
+    
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 100
+        });
+        
+        // Scroll Progress Energy Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scrollEnergy').style.width = scrolled + '%';
+        });
+        
+        // Smooth Scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+        
+        // Model Status Simulation (change dynamically when API responds)
+        // This will be controlled by app.js
+    </script>
+
+</body>
+</html>

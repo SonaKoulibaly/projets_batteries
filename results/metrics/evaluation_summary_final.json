@@ -1,0 +1,31 @@
+{
+    "performance_metrics": {
+        "mae": 2.1508780698977836,
+        "rmse": 2.659333580361402,
+        "r2": 0.8454053319126779,
+        "mape": 2.7973480766429084,
+        "max_error": 9.014158513911,
+        "within_5pct": 96.74711437565581,
+        "within_10pct": 100.0
+    },
+    "error_statistics": {
+        "mean_error": -0.9428479611688677,
+        "median_error": -0.8088763044718092,
+        "std_error": 2.4865825571972278,
+        "min_error": -9.014158513911,
+        "max_error": 7.664523093603208
+    },
+    "best_worst_batteries": {
+        "best_battery": "B0018",
+        "best_mae": 1.59,
+        "worst_battery": "B0007",
+        "worst_mae": 3.6
+    },
+    "model_configuration": {
+        "window_size": 20,
+        "n_features": 15,
+        "split_method": "temporal",
+        "n_test_samples": 2859,
+        "n_batteries_test": 2
+    }
+}

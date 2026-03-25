@@ -1,0 +1,14 @@
+{
+    "test_mae": 2.150878086503616,
+    "test_mse": 7.072055166013994,
+    "test_rmse": 2.6593335943453944,
+    "test_r2": 0.845405330286819,
+    "best_epoch": 60,
+    "total_epochs": 80,
+    "lstm_units": [
+        256,
+        128
+    ],
+    "window_size": 20,
+    "split_method": "temporal"
+}
